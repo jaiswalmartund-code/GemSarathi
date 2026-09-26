@@ -1,0 +1,28 @@
+{
+  "name": "gem-bid-compliance-api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "seed": "node scripts/seed.js",
+    "clean": "node scripts/clean-data.js",
+    "clean:0": "node scripts/clean-data.js 0",
+    "verify:canonical": "node scripts/verify-canonical-data.js",
+    "test:technical-bid": "node scripts/test-technical-bid-pipeline.js",
+    "test:two-layer": "node scripts/test-two-layer-verification.js",
+    "test:tender-ingestion": "node scripts/test-tender-ingestion.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.23.0",
+    "@supabase/supabase-js": "^2.116.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "pdf-parse": "^2.4.5"
+  }
+}

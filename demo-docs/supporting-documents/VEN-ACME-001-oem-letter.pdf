@@ -1,0 +1,55 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1269 >>
+stream
+0.1 0.25 0.5 rg 0 720 612 72 re f 0 0 0 rg
+1 1 1 rg
+BT /F2 18 Tf 1 0 0 1 50 766 Tm (NexaServe Systems) Tj ET
+1 1 1 rg
+BT /F1 10 Tf 1 0 0 1 50 746 Tm (Enterprise Server Division - Original Equipment Manufacturer) Tj ET
+BT /F2 10 Tf 1 0 0 1 50 690 Tm (Ref: MAF/NS/2026/4471    Date: 02-Sep-2026) Tj ET
+BT /F2 13 Tf 1 0 0 1 50 668 Tm (MANUFACTURER AUTHORISATION FORM \(MAF\)) Tj ET
+q 1 w 50 658 m 562 658 l S Q
+BT /F1 10 Tf 1 0 0 1 50 630 Tm (To whom it may concern:) Tj ET
+BT /F1 10 Tf 1 0 0 1 50 606 Tm (We hereby authorize Acme Procurement Systems Pvt Ltd \(GSTIN: 07AAAAA0000A1Z5\),) Tj ET
+BT /F1 10 Tf 1 0 0 1 50 588 Tm (to quote, supply and support our products against GEM/2026/B/1001.) Tj ET
+BT /F1 10 Tf 1 0 0 1 50 564 Tm (We extend full back-to-back 5 years comprehensive on-site) Tj ET
+BT /F1 10 Tf 1 0 0 1 50 546 Tm (warranty support through our authorized service network.) Tj ET
+BT /F1 10 Tf 1 0 0 1 50 522 Tm (Products offered carry 62 percent local content under Make in India.) Tj ET
+q 2 w 0.75 0.1 0.1 RG 380 380 150 44 re S Q 0 0 0 RG
+0.75 0.1 0.1 rg
+BT /F2 11 Tf 1 0 0 1 390 407 Tm (NEXASERVE) Tj ET
+0.75 0.1 0.1 rg
+BT /F1 8 Tf 1 0 0 1 390 392 Tm (Authorised Signatory) Tj ET
+BT /F1 10 Tf 1 0 0 1 50 400 Tm (Authorised Signatory, Seal and Stamp.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001572 00000 n 
+0000001642 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1717
+%%EOF

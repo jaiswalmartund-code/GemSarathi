@@ -1,0 +1,54 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1057 >>
+stream
+q 3 w 0.1 0.25 0.5 RG 30 30 552 732 re S Q 0 0 0 RG
+q 1 w 0.1 0.25 0.5 RG 42 42 528 708 re S Q 0 0 0 RG
+BT /F2 22 Tf 1 0 0 1 190 690 Tm (CERTIFICATE) Tj ET
+BT /F1 12 Tf 1 0 0 1 150 664 Tm (ISO 9001:2015 - Quality Management System) Tj ET
+q 1 w 150 650 m 462 650 l S Q
+BT /F1 11 Tf 1 0 0 1 120 600 Tm (This is to certify that) Tj ET
+BT /F2 16 Tf 1 0 0 1 120 572 Tm (Acme Procurement Systems Pvt Ltd) Tj ET
+BT /F1 11 Tf 1 0 0 1 120 540 Tm (operates a Quality Management System conforming to ISO 9001:2015) Tj ET
+BT /F2 10 Tf 1 0 0 1 120 500 Tm (Certificate No:) Tj ET
+BT /F1 10 Tf 1 0 0 1 280 500 Tm (ISO-2019-44551) Tj ET
+BT /F2 10 Tf 1 0 0 1 120 478 Tm (Valid Till:) Tj ET
+BT /F1 10 Tf 1 0 0 1 280 478 Tm (31-12-2027) Tj ET
+BT /F2 10 Tf 1 0 0 1 120 456 Tm (Scope:) Tj ET
+BT /F1 10 Tf 1 0 0 1 280 456 Tm (Supply & support of enterprise IT hardware) Tj ET
+q 2 w 0.75 0.1 0.1 RG 350 200 150 44 re S Q 0 0 0 RG
+0.75 0.1 0.1 rg
+BT /F2 11 Tf 1 0 0 1 360 227 Tm (CERTIFICATION BODY) Tj ET
+0.75 0.1 0.1 rg
+BT /F1 8 Tf 1 0 0 1 360 212 Tm (Authorised Signatory) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001360 00000 n 
+0000001430 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1505
+%%EOF

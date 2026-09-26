@@ -1,0 +1,64 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1041 >>
+stream
+0.12 0.3 0.62 rg 40 480 532 240 re f 0 0 0 rg
+q 2 w 0 0 0 RG 40 480 532 240 re S Q 0 0 0 RG
+1 1 1 rg
+BT /F2 15 Tf 1 0 0 1 70 690 Tm (INCOME TAX DEPARTMENT) Tj ET
+1 1 1 rg
+BT /F2 10 Tf 1 0 0 1 70 672 Tm (GOVT. OF INDIA) Tj ET
+1 1 1 rg
+BT /F2 13 Tf 1 0 0 1 430 690 Tm (PAN CARD) Tj ET
+q 1 w 1 1 1 RG 70 560 90 100 re S Q 0 0 0 RG
+1 1 1 rg
+BT /F1 8 Tf 1 0 0 1 78 605 Tm (PHOTO) Tj ET
+1 1 1 rg
+BT /F2 10 Tf 1 0 0 1 180 640 Tm (Name /) Tj ET
+1 1 1 rg
+BT /F2 12 Tf 1 0 0 1 180 624 Tm (ACME PROCUREMENT SYSTEMS PVT LTD) Tj ET
+1 1 1 rg
+BT /F2 10 Tf 1 0 0 1 180 600 Tm (Father's Name /) Tj ET
+1 1 1 rg
+BT /F2 11 Tf 1 0 0 1 180 584 Tm (NA \(Company PAN\)) Tj ET
+1 1 1 rg
+BT /F2 10 Tf 1 0 0 1 180 560 Tm (Date of Birth /) Tj ET
+1 1 1 rg
+BT /F2 11 Tf 1 0 0 1 180 544 Tm (12-04-2016) Tj ET
+1 1 1 rg
+BT /F2 10 Tf 1 0 0 1 70 520 Tm (Permanent Account Number /) Tj ET
+1 1 1 rg
+BT /F2 16 Tf 1 0 0 1 70 500 Tm (AAACA1234F) Tj ET
+0.95 0.95 0.95 rg 40 440 532 26 re f 0 0 0 rg
+BT /F1 9 Tf 1 0 0 1 60 448 Tm (Acme Procurement Systems Pvt Ltd - Company PAN) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001344 00000 n 
+0000001414 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1489
+%%EOF
