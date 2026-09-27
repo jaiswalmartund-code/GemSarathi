@@ -300,7 +300,9 @@ router.post("/bids", asyncRoute(async (req, res) => {
 // V2 Technical Bid Document Upload Endpoint
 router.post("/bids/:bidId/documents", upload.single("file"), asyncRoute(async (req, res) => {
   const { bidId } = req.params;
-  let docType = (req.body.documentType || req.body.document_type || "TECHNICAL_BID").toUpperCase();
+  const rawSlot = (req.body.documentType || req.body.document_type || "TECHNICAL_BID").trim();
+  const reqId = req.body.requirementId || req.body.requirement_id || "";
+  let docType = rawSlot.toUpperCase();
 
   const bid = await Bid.findById(bidId);
   if (!bid) {
@@ -311,7 +313,7 @@ router.post("/bids/:bidId/documents", upload.single("file"), asyncRoute(async (r
     return res.status(400).json({ success: false, error: "No PDF file uploaded in field 'file'." });
   }
 
-  // Normalize documentType if it starts with REQUIREMENT_
+  // Normalize canonical documentType if it starts with REQUIREMENT_
   if (docType.startsWith("REQUIREMENT_")) {
     const text = `${docType} ${req.file.originalname || ""}`.toLowerCase();
     if (text.includes("pan")) docType = "PAN";
@@ -325,14 +327,22 @@ router.post("/bids/:bidId/documents", upload.single("file"), asyncRoute(async (r
   }
 
   const bId = bid._id || bid.id;
-  if (docType !== "OTHER") {
-    await Document.deleteMany({
-      $or: [
-        { bidId: bId, documentType: docType },
-        { bid_id: bId, document_type: docType }
-      ]
-    });
+  const deleteConditions = [
+    { bidId: bId, slotType: rawSlot },
+    { bid_id: bId, slot_type: rawSlot },
+    { bidId: bId, rawDocumentType: rawSlot },
+    { bid_id: bId, raw_document_type: rawSlot }
+  ];
+  if (reqId) {
+    deleteConditions.push({ bidId: bId, requirementId: reqId });
+    deleteConditions.push({ bid_id: bId, requirement_id: reqId });
   }
+  if (docType === "TECHNICAL_BID") {
+    deleteConditions.push({ bidId: bId, documentType: "TECHNICAL_BID" });
+    deleteConditions.push({ bid_id: bId, document_type: "TECHNICAL_BID" });
+  }
+
+  await Document.deleteMany({ $or: deleteConditions });
 
   const fileBuffer = fs.readFileSync(req.file.path);
   const crypto = await import("node:crypto");
@@ -351,6 +361,12 @@ router.post("/bids/:bidId/documents", upload.single("file"), asyncRoute(async (r
     vendor_id: bid.vendorId || bid.vendor_id,
     documentType: docType,
     document_type: docType,
+    slotType: rawSlot,
+    slot_type: rawSlot,
+    rawDocumentType: rawSlot,
+    raw_document_type: rawSlot,
+    requirementId: reqId || null,
+    requirement_id: reqId || null,
     originalFilename: fileName,
     original_filename: fileName,
     storagePath: normalizedStoragePath,

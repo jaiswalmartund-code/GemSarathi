@@ -7,43 +7,28 @@ import { apiRequest } from "../services/apiClient";
 const documentTitle = requirement => requirement?.title || requirement?.requirementName || requirement?.requirement_name || "Submission document";
 const documentDescription = requirement => requirement?.description || "Upload a clear PDF that addresses this requirement.";
 const documentType = (requirement, index) => {
-  const reqDocType = String(requirement?.requiredDocumentType || requirement?.required_document_type || "").toUpperCase();
-  if (reqDocType && reqDocType !== "OTHER") return reqDocType;
-
-  const text = `${requirement?.title || ""} ${requirement?.requirementName || ""} ${requirement?.requirement_name || ""} ${requirement?.category || ""} ${requirement?.requirementType || ""}`.toLowerCase();
-  if (text.includes("pan")) return "PAN";
-  if (text.includes("gst")) return "GST";
-  if (text.includes("aadhaar") || text.includes("identity")) return "AADHAAR";
-  if (text.includes("turnover") || text.includes("financial") || text.includes("itr") || text.includes("balance")) return "FINANCIAL_STATEMENT";
-  if (text.includes("experience") || text.includes("contract") || text.includes("past work")) return "EXPERIENCE_CERTIFICATE";
-  if (text.includes("company") || text.includes("mca") || text.includes("registration") || text.includes("incorporation")) return "COMPANY_REGISTRATION";
-  if (text.includes("technical")) return "TECHNICAL_BID";
-
-  return `REQUIREMENT_${requirement?.id || requirement?._id || index + 1}`;
+  const reqId = requirement?.id || requirement?._id || index + 1;
+  return `REQUIREMENT_${reqId}`;
 };
 const dateTimeLabel = value => value ? new Date(value).toLocaleString(undefined, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "To be announced";
 
 function requirementForDocument(requirement, index, documents) {
   if (!requirement || !Array.isArray(documents)) return null;
-  const targetType = documentType(requirement, index);
+  const targetSlot = documentType(requirement, index).toUpperCase();
   const reqId = String(requirement?.id || requirement?._id || "");
   const reqDocType = String(requirement?.requiredDocumentType || requirement?.required_document_type || "").toUpperCase();
-  const text = `${requirement?.title || ""} ${requirement?.requirementName || ""} ${requirement?.requirement_name || ""} ${requirement?.category || ""} ${requirement?.requirementType || ""}`.toLowerCase();
 
   return documents.find(doc => {
-    const dType = String(doc.documentType || doc.document_type || "").toUpperCase();
     const dSlot = String(doc.slotType || doc.rawDocumentType || "").toUpperCase();
+    const dReqId = String(doc.requirementId || doc.requirement_id || "");
 
-    if (dType === targetType || dSlot === targetType) return true;
-    if (reqDocType && reqDocType !== "OTHER" && dType === reqDocType) return true;
-    if (reqId && (dType.includes(reqId) || dSlot.includes(reqId))) return true;
+    // 1. Primary match by exact slot identifier or requirement ID
+    if (dSlot && dSlot === targetSlot) return true;
+    if (reqId && dReqId && reqId === dReqId) return true;
 
-    if (text.includes("pan") && dType === "PAN") return true;
-    if (text.includes("gst") && dType === "GST") return true;
-    if ((text.includes("aadhaar") || text.includes("identity")) && dType === "AADHAAR") return true;
-    if ((text.includes("turnover") || text.includes("financial") || text.includes("itr")) && dType === "FINANCIAL_STATEMENT") return true;
-    if (text.includes("experience") && dType === "EXPERIENCE_CERTIFICATE") return true;
-    if ((text.includes("company") || text.includes("mca") || text.includes("registration")) && dType === "COMPANY_REGISTRATION") return true;
+    // 2. Secondary match for canonical document types (when slot is not explicitly tagged)
+    const dType = String(doc.documentType || doc.document_type || "").toUpperCase();
+    if (reqDocType && reqDocType !== "OTHER" && dType === reqDocType && (!dSlot || dSlot === "OTHER")) return true;
 
     return false;
   });
