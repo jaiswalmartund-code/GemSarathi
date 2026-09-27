@@ -9,12 +9,55 @@ import router from "./routes/apiRoutes.js";
 
 const app = express();
 
-app.use(cors({ origin: config.frontendOrigin, credentials: true }));
+// Parse and normalize allowed frontend origins for CORS
+const configuredOrigins = (config.frontendOrigin || "")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (curl, server-to-server, health probes)
+    if (!origin) return callback(null, true);
+
+    const normOrigin = origin.replace(/\/+$/, "");
+
+    // 1. Match explicitly configured origins (e.g. https://gem-sarathi.vercel.app)
+    if (configuredOrigins.includes(normOrigin)) {
+      return callback(null, true);
+    }
+
+    // 2. Allow local development origins (localhost / 127.0.0.1 on any port)
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normOrigin)) {
+      return callback(null, true);
+    }
+
+    // 3. Allow Vercel preview deployment domains
+    if (/^https:\/\/[a-zA-Z0-9-]+(-[a-zA-Z0-9-]+)*\.vercel\.app$/.test(normOrigin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS policy error: Origin '${origin}' is not allowed.`));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
-app.get("/health", (_req, res) =>
-  res.json({ status: "ok", service: config.appName, ai_enabled: true, ai_mode: documentUnderstandingService.getMode(), db_mode: dbMode, storage: storageMode() })
-);
+// Health Check Endpoints (both /health and /api/health)
+const healthHandler = (_req, res) =>
+  res.json({
+    status: "ok",
+    service: config.appName,
+    ai_enabled: true,
+    ai_mode: documentUnderstandingService.getMode(),
+    db_mode: dbMode,
+    storage: storageMode(),
+  });
+
+app.get("/health", healthHandler);
+app.get(`${config.apiPrefix}/health`, healthHandler);
 
 app.use(config.apiPrefix, router);
 

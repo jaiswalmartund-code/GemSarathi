@@ -1,9 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+export const API_BASE_URL = RAW_BASE_URL.endsWith("/") ? RAW_BASE_URL.slice(0, -1) : RAW_BASE_URL;
 
 export async function apiRequest(path, options = {}) {
   const token = window.localStorage.getItem("gem_access_token");
   const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  const response = await fetch(`${API_BASE_URL}${cleanPath}`, {
     headers: {
       ...(!isFormData ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

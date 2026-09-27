@@ -1,10 +1,10 @@
 // Gemini Tender Understanding & Requirement Extraction Adapter using @google/genai SDK
 import { GoogleGenAI } from "@google/genai";
 import "dotenv/config";
+import { config } from "../../config/index.js";
 
-const rawModel = process.env.GEMINI_MODEL || "gemini-1.5-flash";
-const MODEL = rawModel.includes("3.5") ? "gemini-1.5-flash" : rawModel;
-const apiKey = process.env.GEMINI_API_KEY;
+const MODEL = process.env.GEMINI_MODEL || config.geminiModel || "gemini-2.5-flash";
+const apiKey = process.env.GEMINI_API_KEY || config.geminiApiKey;
 
 const aiClient = apiKey ? new GoogleGenAI({ apiKey }) : null;
 

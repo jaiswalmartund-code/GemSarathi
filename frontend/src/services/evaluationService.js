@@ -1,6 +1,4 @@
-import { apiRequest } from "@/services/apiClient";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+import { apiRequest, API_BASE_URL } from "./apiClient";
 
 export const getEvaluationById = id => apiRequest(`/evaluations/${id}`);
 export const getBidEvaluationData = bidId => apiRequest(`/bids/${bidId}/evaluation-data`);

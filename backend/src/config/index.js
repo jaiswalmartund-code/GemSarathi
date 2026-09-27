@@ -15,5 +15,5 @@ export const config = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "",
   supabaseBucket: process.env.SUPABASE_BUCKET || "bid-uploads",
   geminiApiKey: process.env.GEMINI_API_KEY || "",
-  geminiModel: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+  geminiModel: process.env.GEMINI_MODEL || "gemini-2.5-flash",
 };
