@@ -176,10 +176,15 @@ async function runTests() {
         const facts = await extractTechnicalBidFacts(pdfTextRes.text, fileBuffer, "application/pdf");
         extraction = await DocumentExtraction.create({
           documentId: docId,
+          document_id: docId,
           extractedText: pdfTextRes.text,
+          extracted_text: pdfTextRes.text,
           extractedData: JSON.stringify(facts.data),
+          extracted_data: JSON.stringify(facts.data),
           extractionMethod: "gemini",
-          extractionStatus: "COMPLETED"
+          extraction_method: "gemini",
+          extractionStatus: "COMPLETED",
+          extraction_status: "COMPLETED"
         });
       }
     }

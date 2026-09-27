@@ -10,12 +10,18 @@ const __dirname = path.dirname(__filename);
 async function runTest() {
   console.log("=== V2 Tender Ingestion Test ===");
 
-  // Target PDF file
-  const defaultPdfPath = path.resolve(__dirname, "../../demo-docs/tenders/GEM_2026_B_DEMO_001_Tender.pdf");
-  const pdfPath = process.argv[2] ? path.resolve(process.argv[2]) : defaultPdfPath;
+  const candidates = [
+    process.argv[2] ? path.resolve(process.argv[2]) : null,
+    path.resolve(__dirname, "../../demo-docs/tenders/GEM_2026_B_DEMO_001_Tender.pdf"),
+    path.resolve(__dirname, "../../demo-docs/GEM_2026_B_DEMO_001_Tender.pdf"),
+    path.resolve(__dirname, "../../demo-docs/Tender-Notice-GEM-2026-B-1001.pdf"),
+    path.resolve(__dirname, "../demo-docs/tenders/GEM_2026_B_DEMO_001_Tender.pdf"),
+  ].filter(Boolean);
 
-  if (!fs.existsSync(pdfPath)) {
-    console.error(`[ERROR] Test PDF file not found at: ${pdfPath}`);
+  const pdfPath = candidates.find((p) => fs.existsSync(p));
+
+  if (!pdfPath) {
+    console.error(`[ERROR] Test PDF file not found in demo-docs candidate paths.`);
     process.exitCode = 1;
     return;
   }

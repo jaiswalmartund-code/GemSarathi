@@ -26,35 +26,43 @@ function safeName(name) {
   return path.basename(name || "upload.bin").replace(/[^a-zA-Z0-9._-]+/g, "_");
 }
 
-export async function saveUpload(file) {
+export async function saveUpload(file, bucketName = BUCKET) {
   if (storageMode() === "supabase") {
     const supabase = await supabaseAdmin();
     const buffer = await fs.readFile(file.path);
     const key = `${Date.now()}_${safeName(file.originalname)}`;
-    const { error } = await supabase.storage.from(BUCKET).upload(key, buffer, {
+    const { error } = await supabase.storage.from(bucketName).upload(key, buffer, {
       contentType: file.mimetype || "application/octet-stream",
       upsert: false,
     });
-    await fs.unlink(file.path).catch(() => {});
+    if (file.isTemp || file.fieldname) {
+      await fs.unlink(file.path).catch(() => {});
+    }
     if (error) throw new Error(`Supabase upload failed: ${error.message}`);
-    return { storagePath: `supabase://${BUCKET}/${key}`, fileSize: buffer.length };
+    return { storagePath: `supabase://${bucketName}/${key}`, fileSize: buffer.length };
   }
   await fs.mkdir(config.uploadDir, { recursive: true });
-  const target = path.join(config.uploadDir, `${file.filename}_${safeName(file.originalname)}`);
-  await fs.rename(file.path, target);
-  return { storagePath: target, fileSize: file.size };
+  const target = path.join(config.uploadDir, `${file.filename || Date.now()}_${safeName(file.originalname)}`);
+  if (file.isTemp || file.fieldname) {
+    await fs.rename(file.path, target).catch(async () => {
+      await fs.copyFile(file.path, target);
+    });
+  } else {
+    await fs.copyFile(file.path, target);
+  }
+  return { storagePath: target, fileSize: file.size || (await fs.stat(target)).size };
 }
 
-export async function saveBuffer(filename, buffer, mimeType = "application/octet-stream") {
+export async function saveBuffer(filename, buffer, mimeType = "application/octet-stream", bucketName = BUCKET) {
   if (storageMode() === "supabase") {
     const supabase = await supabaseAdmin();
     const key = `${Date.now()}_${safeName(filename)}`;
-    const { error } = await supabase.storage.from(BUCKET).upload(key, buffer, {
+    const { error } = await supabase.storage.from(bucketName).upload(key, buffer, {
       contentType: mimeType,
       upsert: true,
     });
     if (error) throw new Error(`Supabase upload failed: ${error.message}`);
-    return { storagePath: `supabase://${BUCKET}/${key}`, fileSize: buffer.length };
+    return { storagePath: `supabase://${bucketName}/${key}`, fileSize: buffer.length };
   }
   await fs.mkdir(config.uploadDir, { recursive: true });
   const target = path.join(config.uploadDir, safeName(filename));

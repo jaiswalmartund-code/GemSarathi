@@ -1,7 +1,19 @@
 // Mock GSTIN (Goods & Services Tax) Registry Provider
-// Returns reference GSTIN registration data from the GSTN Portal snapshot.
+// Returns reference GSTIN registration data from persistent MockProviderRecord database / GSTN Portal snapshot.
+
+import { MockProviderRecord } from "../../../db/models.js";
 
 const GSTN_REGISTRY = {
+  "07AACAC1234A1Z5": {
+    gstin: "07AACAC1234A1Z5",
+    legalName: "Acme Corporation",
+    tradeName: "Acme Corp",
+    status: "ACTIVE",
+    taxpayerType: "Regular",
+    stateJurisdiction: "State - Delhi",
+    returnsFiledTill: "Aug-2026",
+    filingUpToDate: true
+  },
   "07AAACA1234F1Z5": {
     gstin: "07AAACA1234F1Z5",
     legalName: "Apex Network Solutions Private Limited",
@@ -48,18 +60,24 @@ export class MockGstProvider {
   async verify(gstinIdentifier) {
     const normGst = (gstinIdentifier || "").toString().trim().toUpperCase();
     if (!normGst) return null;
+
+    try {
+      const dbRecord = await MockProviderRecord.findOne({
+        providerType: "GST_REGISTRY",
+        identifier: normGst,
+      });
+      if (dbRecord && dbRecord.referenceData) {
+        return { ...dbRecord.referenceData };
+      }
+    } catch (e) {
+      // Fallback
+    }
+
     const record = GSTN_REGISTRY[normGst];
     if (record) return { ...record };
-    return {
-      gstin: normGst,
-      legalName: "Registered Entity",
-      tradeName: "Registered Entity",
-      status: "ACTIVE",
-      taxpayerType: "Regular",
-      stateJurisdiction: "State",
-      returnsFiledTill: "Aug-2026",
-      filingUpToDate: true
-    };
+
+    // Unknown identifier -> return null (no fabricated fake records)
+    return null;
   }
 }
 
@@ -67,9 +85,11 @@ export const gstProvider = new MockGstProvider();
 
 export async function verifyGstInRegistry(gstin) {
   const data = await gstProvider.verify(gstin);
-  if (!data) return { status: "not_found", detail: "No GSTIN found in bid documents or vendor profile.", evidence: null };
-  if (data.status === "ACTIVE" && data.filingUpToDate) {
-    return { status: "verified", detail: `GSTIN ${data.gstin} active; returns filed till ${data.returnsFiledTill}.`, evidence: data };
+  if (!data) return { status: "not_found", detail: "No GSTIN found in GST registry snapshot.", evidence: null };
+  const isCompliant = (data.status === "ACTIVE" || data.status === "VERIFIED") && (data.filingUpToDate !== false || data.filingStatus === "UP_TO_DATE");
+  if (isCompliant) {
+    return { status: "verified", detail: `GSTIN ${data.identifier || data.gstin} active; returns filed till ${data.returnsFiledTill || "UP TO DATE"}.`, evidence: data };
   }
-  return { status: "mismatch", detail: `GSTIN ${data.gstin}: status ${data.status}, returns filed till ${data.returnsFiledTill}.`, evidence: data };
+  return { status: "mismatch", detail: `GSTIN ${data.identifier || data.gstin}: status ${data.status}.`, evidence: data };
 }
+

@@ -1,0 +1,100 @@
+.officer-evaluations > .officer-eval-intro {
+  margin: 0 0 14px;
+  padding: 14px 4px 2px;
+}
+
+.officer-evaluations > .officer-eval-intro h1 {
+  margin: 7px 0 0;
+  color: #143b60;
+  font-size: clamp(2.35rem, 4vw, 3.45rem);
+  line-height: 1.05;
+}
+
+.officer-evaluations > .officer-queue-overview {
+  grid-template-columns: minmax(280px, 1.45fr) repeat(2, minmax(135px, .5fr)) minmax(210px, .85fr);
+  gap: 12px;
+  margin: 0 0 22px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.officer-evaluations .officer-queue-copy {
+  position: relative;
+  padding: 24px 25px;
+  border: 1px solid #d7e5ed;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(30, 69, 99, .045);
+}
+
+.officer-evaluations .officer-queue-copy::after {
+  position: absolute;
+  bottom: 0;
+  left: 24px;
+  width: 48px;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: #d9a63a;
+  content: "";
+}
+
+.officer-evaluations .officer-queue-copy h2 {
+  margin: 7px 0 5px;
+  color: #17466b;
+  font-size: 1.22rem;
+}
+
+.officer-evaluations .officer-queue-copy p {
+  max-width: 500px;
+  color: #718ba0;
+  font-size: .8rem;
+  line-height: 1.52;
+}
+
+.officer-evaluations .officer-queue-stat {
+  align-content: center;
+  padding: 18px;
+  border: 1px solid #d7e5ed;
+  border-radius: 16px;
+  color: #244f70;
+  background: #f8fbfd;
+  box-shadow: 0 8px 22px rgba(30, 69, 99, .04);
+}
+
+.officer-evaluations .officer-queue-stat strong {
+  color: #1a4f78;
+  font-size: 1.8rem;
+}
+
+.officer-evaluations .officer-queue-stat span {
+  color: #708b9f;
+  font-size: .71rem;
+  font-weight: 750;
+}
+
+.officer-evaluations .officer-queue-source {
+  gap: 11px;
+  padding: 18px 20px;
+  border: 1px solid #eadbbd;
+  border-radius: 16px;
+  color: #50718a;
+  background: #fffaf0;
+  box-shadow: 0 8px 22px rgba(30, 69, 99, .04);
+}
+
+.officer-evaluations .officer-queue-source > svg { color: #c48422; }
+.officer-evaluations .officer-queue-source strong { color: #245172; font-size: .78rem; }
+.officer-evaluations .officer-queue-source span { color: #947336; font-size: .7rem; }
+
+@media (max-width: 850px) {
+  .officer-evaluations > .officer-queue-overview { grid-template-columns: 1fr 1fr; }
+  .officer-evaluations .officer-queue-copy { grid-column: 1 / -1; }
+}
+
+@media (max-width: 520px) {
+  .officer-evaluations > .officer-queue-overview { grid-template-columns: 1fr; }
+  .officer-evaluations .officer-queue-stat,
+  .officer-evaluations .officer-queue-source { border: 1px solid #e1ebf1; }
+  .officer-evaluations > .officer-eval-intro h1 { font-size: 2.3rem; }
+}

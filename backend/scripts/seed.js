@@ -132,7 +132,8 @@ export async function seedDatabase() {
   async function ensureUser(email, role) {
     let user = await User.findOne({ email });
     if (!user) {
-      user = await User.create({ email, passwordHash, role, isActive: true });
+      const userName = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, " ");
+      user = await User.create({ email, name: userName, passwordHash, role, isActive: true });
       console.log("Created user:", email);
     }
     const plain = user.toObject ? user.toObject() : user;
@@ -146,6 +147,7 @@ export async function seedDatabase() {
     tender = await Tender.create({
       referenceNumber: "GEM/2026/B/1001",
       title: "Supply of High-Performance Computing Servers",
+      organization: "Department of Electronics & IT",
       department: "Department of Electronics & IT",
       description: "Procurement of rack-mountable enterprise server infrastructure with minimum 50 percent local content.",
       submissionDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -161,9 +163,14 @@ export async function seedDatabase() {
     await Requirement.insertMany(
       REQUIREMENTS.map((item, index) => ({
         tenderId: tenderPlain._id,
+        tender_id: tenderPlain._id,
         title: item.title,
+        requirementName: item.title,
+        requirement_name: item.title,
         description: item.description,
         category: item.category,
+        requirementType: item.category,
+        requirement_type: item.category,
         mandatory: item.mandatory,
         requirementOrder: index + 1,
       }))
@@ -210,7 +217,8 @@ export async function seedDatabase() {
         bidId: bidPlain._id,
         tenderId: tenderPlain._id,
         vendorId: profilePlain._id,
-        documentType: "Technical Proposal",
+        documentType: "TECHNICAL_BID",
+        document_type: "TECHNICAL_BID",
         originalFilename: filename,
         storagePath: stored.storagePath,
         mimeType: "application/pdf",
@@ -273,6 +281,7 @@ export async function seedDatabase() {
       tender = await Tender.create({
         referenceNumber: h.referenceNumber,
         title: h.title,
+        organization: h.department,
         department: h.department,
         description: h.description,
         submissionDeadline: new Date(h.awardedAt.getTime() - 30 * 24 * 60 * 60 * 1000),
@@ -283,9 +292,14 @@ export async function seedDatabase() {
       await Requirement.insertMany(
         h.requirements.map((item, index) => ({
           tenderId: tender.toObject ? tender.toObject()._id : tender._id,
+          tender_id: tender.toObject ? tender.toObject()._id : tender._id,
           title: item.title,
+          requirementName: item.title,
+          requirement_name: item.title,
           description: item.description,
           category: item.category,
+          requirementType: item.category,
+          requirement_type: item.category,
           mandatory: item.mandatory,
           requirementOrder: index + 1,
         }))

@@ -69,9 +69,44 @@ const docs = {
     "2 years of experience in general trading.",
     "Best prices assured. No advance needed.",
   ],
+  "tenders/GEM_2026_B_DEMO_001_Tender.pdf": [
+    "GOVERNMENT E-MARKETPLACE - OFFICIAL TENDER NOTICE",
+    "Tender No: GEM/2026/B/DEMO-001",
+    "Title: Supply, Installation, Testing, Commissioning and Warranty Support of Network Infrastructure Equipment",
+    "Organization: Department of Digital Infrastructure",
+    "Last Date for Submission: 22 Oct 2026 17:00",
+    "Completion Period: 90 days from PO issue.",
+    "Warranty: 3 years comprehensive OEM warranty.",
+    "1. Minimum Average Annual Turnover: Rs 2.5 Crore during last 3 financial years.",
+    "2. Minimum 5 years experience in executing network infrastructure projects.",
+    "3. Valid GSTIN registration certificate and active tax status required.",
+    "4. Valid PAN registration certificate required.",
+    "5. Managed Layer 2/3 Gigabit Ethernet Switches min 24 ports.",
+    "6. Enterprise Network Routers min 4 GbE interfaces.",
+    "7. Next-Generation Firewall min 1 Gbps throughput.",
+  ],
+  "tenders/GEM_2026_B_DEMO_002_Tender.pdf": [
+    "GOVERNMENT E-MARKETPLACE - OFFICIAL TENDER NOTICE",
+    "Tender No: GEM/2026/B/DEMO-002",
+    "Title: Supply, Installation, Testing, Commissioning and Warranty Support of CCTV Surveillance System",
+    "Organization: Department of Digital Infrastructure, Government of India",
+    "Last Date for Submission: 27 Oct 2026 17:00",
+    "Completion Period: 60 days from PO issue.",
+    "Warranty: 3 years comprehensive OEM warranty.",
+    "1. Minimum Average Annual Turnover: Rs 1.5 Crore during last 3 financial years.",
+    "2. Minimum 3 years experience in supply / installation / maintenance of CCTV / surveillance.",
+    "3. Valid GSTIN registration certificate and active tax status required.",
+    "4. Valid PAN registration certificate required.",
+    "5. IP-based CCTV cameras and network video recorders.",
+    "6. Storage and display units with 19-inch racks.",
+  ],
 };
+
+const tendersDir = path.join(outDir, "tenders");
+fs.mkdirSync(tendersDir, { recursive: true });
 
 for (const [name, lines] of Object.entries(docs)) {
   fs.writeFileSync(path.join(outDir, name), makePdf(lines));
   console.log("wrote demo-docs/" + name);
 }
+

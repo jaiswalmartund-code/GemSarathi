@@ -68,19 +68,43 @@ export class GovernmentVerificationService {
     return await verifyIsoCertification(hasIsoClaim, documents);
   }
 
+  async verifyVendorOnPortals(identifiers = {}, context = {}) {
+    const panResult = await verifyPanInRegistry(identifiers.pan);
+    const gstResult = await verifyGstInRegistry(identifiers.gstin);
+    const udyamResult = await verifyUdyamInRegistry(identifiers.udyamNo || identifiers.udyamNumber);
+    const expResult = await verifyExperienceInRegistry(identifiers.legalName || identifiers.vendorCode);
+    const itrResult = await verifyItrInRegistry(identifiers.pan);
+    const mcaResult = await verifyMcaInRegistry(identifiers.cin || identifiers.pan);
+    const debarmentResult = await verifyDebarmentInRegistry(identifiers.legalName, identifiers.vendorCode);
+    const digiLockerResult = await verifyDigiLockerInRegistry(context.documentNames || []);
+
+    return {
+      results: {
+        pan_status: panResult,
+        gstin_status: gstResult,
+        udyam_status: udyamResult,
+        experience_status: expResult,
+        itr_status: itrResult,
+        mca_status: mcaResult,
+        debarment_check: debarmentResult,
+        digilocker_verification: digiLockerResult,
+      }
+    };
+  }
+
   async getSevenProviderReferenceData(vendorData = {}) {
-    const pan = vendorData.pan || "AAACA1234F";
-    const gstin = vendorData.gstin || "07AAACA1234F1Z5";
-    const udyamNo = vendorData.udyamNumber || vendorData.udyam_number || "UDYAM-HR-05-0012345";
-    const vendorName = vendorData.legalName || vendorData.company_name || vendorData.companyName || "Apex Network Solutions Private Limited";
-    const cin = vendorData.cin || vendorData.llpin || "U72900HR2018PTC074123";
-    const aadhaarRef = vendorData.aadhaarRef || vendorData.contact_person || vendorData.contactPerson || "Rahul Sharma";
+    const pan = vendorData.pan || "AACAC1234A";
+    const gstin = vendorData.gstin || "07AACAC1234A1Z5";
+    const udyamNo = vendorData.udyamNumber || vendorData.udyam_number || "UDYAM-DL-01-0001234";
+    const vendorNameOrId = vendorData.vendorId || vendorData.vendor_id || vendorData.legalName || vendorData.company_name || vendorData.companyName || "VEN-ACME-001";
+    const cin = vendorData.cin || vendorData.llpin || "U72900DL2019PTC123456";
+    const aadhaarRef = vendorData.aadhaarRef || vendorData.contact_person || vendorData.contactPerson || "999988887777";
 
     const [panData, gstData, udyamData, expData, itrData, aadhaarData, mcaData] = await Promise.all([
       this.verifyPan(pan),
       this.verifyGst(gstin),
       this.verifyUdyam(udyamNo),
-      this.verifyExperience(vendorName),
+      this.verifyExperience(vendorNameOrId),
       this.verifyItr(pan),
       this.verifyAadhaar(aadhaarRef),
       this.verifyMca(cin)
@@ -96,6 +120,7 @@ export class GovernmentVerificationService {
       mca: mcaData
     };
   }
+
 }
 
 export const governmentVerificationService = new GovernmentVerificationService();

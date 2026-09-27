@@ -4,6 +4,10 @@ import { LanguageProvider } from "./context/LanguageContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import LoginPage from "./pages/LoginPage";
 import VendorDashboardPage from "./pages/VendorDashboardPage";
+import VendorBidsPage from "./pages/VendorBidsPage";
+import VendorTendersPage from "./pages/VendorTendersPage";
+import VendorTenderDetailPage from "./pages/VendorTenderDetailPage";
+import VendorBidSubmissionPage from "./pages/VendorBidSubmissionPage";
 import DashboardPage from "./pages/DashboardPage";
 import TendersPage from "./pages/TendersPage";
 import TenderDetailPage from "./pages/TenderDetailPage";
@@ -48,6 +52,38 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRole="vendor">
                     <VendorDashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/vendor/tenders"
+                element={
+                  <ProtectedRoute allowedRole="vendor">
+                    <VendorTendersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/vendor/bids"
+                element={
+                  <ProtectedRoute allowedRole="vendor">
+                    <VendorBidsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/vendor/tenders/:id"
+                element={
+                  <ProtectedRoute allowedRole="vendor">
+                    <VendorTenderDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/vendor/bids/:bidId/submit"
+                element={
+                  <ProtectedRoute allowedRole="vendor">
+                    <VendorBidSubmissionPage />
                   </ProtectedRoute>
                 }
               />

@@ -67,6 +67,8 @@ function toColumnName(key) {
     aadhaarNumber: "aadhaar_number",
     dateOfBirth: "date_of_birth",
     referenceDocumentId: "reference_document_id",
+    providerType: "provider_type",
+    referenceData: "reference_data",
     createdAt: "created_at",
     updatedAt: "updated_at",
   };
@@ -91,6 +93,7 @@ const TABLE_COLUMNS = {
   verification_results: ["id", "bid_id", "requirement_id", "status", "extracted_value", "expected_value", "compliance_score", "explanation", "created_at", "updated_at"],
   evidence: ["id", "verification_result_id", "document_id", "page_number", "evidence_text", "extracted_value", "created_at", "updated_at"],
   aadhaar_registry: ["id", "aadhaar_number", "name", "date_of_birth", "address", "reference_document_id", "created_at", "updated_at"],
+  mock_provider_records: ["id", "provider_type", "identifier", "vendor_id", "status", "reference_data", "created_at", "updated_at"],
 };
 
 // Convert input JS filter/payload object to Postgres column object
@@ -105,6 +108,26 @@ function toPostgresRow(table, obj = {}) {
       row[col] = val;
     }
   }
+
+  if (table === "documents" && row.document_type) {
+    const valid = new Set(["PAN", "AADHAAR", "FINANCIAL_STATEMENT", "EXPERIENCE_CERTIFICATE", "COMPANY_REGISTRATION", "GST", "TECHNICAL_BID", "TENDER_NOTICE", "OTHER"]);
+    const upper = String(row.document_type).toUpperCase();
+    if (valid.has(upper)) {
+      row.document_type = upper;
+    } else {
+      const text = `${row.document_type} ${row.original_filename || ""}`.toLowerCase();
+      if (text.includes("pan")) row.document_type = "PAN";
+      else if (text.includes("gst")) row.document_type = "GST";
+      else if (text.includes("aadhaar") || text.includes("identity")) row.document_type = "AADHAAR";
+      else if (text.includes("financial") || text.includes("turnover") || text.includes("itr") || text.includes("balance")) row.document_type = "FINANCIAL_STATEMENT";
+      else if (text.includes("experience")) row.document_type = "EXPERIENCE_CERTIFICATE";
+      else if (text.includes("company") || text.includes("mca") || text.includes("registration") || text.includes("incorporation")) row.document_type = "COMPANY_REGISTRATION";
+      else if (text.includes("technical")) row.document_type = "TECHNICAL_BID";
+      else if (text.includes("notice") || text.includes("tender")) row.document_type = "TENDER_NOTICE";
+      else row.document_type = "OTHER";
+    }
+  }
+
   return row;
 }
 
@@ -130,9 +153,26 @@ function fromPostgresRow(row) {
 
 const cleanRow = (value) => JSON.parse(JSON.stringify(value));
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isUuidColumn(col) {
+  return col === "id" || col.endsWith("_id");
+}
+
+function isValidUuid(val) {
+  return typeof val === "string" && UUID_REGEX.test(val);
+}
+
 function applyFilter(query, table, filter = {}) {
   let q = query;
-  const { $or, ...rest } = filter;
+  const { $or, $and, ...rest } = filter;
+  const validCols = TABLE_COLUMNS[table] ? new Set(TABLE_COLUMNS[table]) : null;
+
+  if (Array.isArray($and) && $and.length > 0) {
+    for (const subFilter of $and) {
+      q = applyFilter(q, table, subFilter);
+    }
+  }
 
   if (Array.isArray($or) && $or.length > 0) {
     const orParts = [];
@@ -141,19 +181,26 @@ function applyFilter(query, table, filter = {}) {
       for (const [k, v] of Object.entries(sub)) {
         if (v !== undefined && v !== null) {
           const col = toColumnName(k);
+          if (validCols && !validCols.has(col)) continue;
+          if (isUuidColumn(col) && typeof v === "string" && !isValidUuid(v)) {
+            continue;
+          }
           if (typeof v === "object" && !Array.isArray(v) && "$in" in v) {
-            parts.push(`${col}.in.(${v.$in.join(",")})`);
+            const validVals = isUuidColumn(col) ? v.$in.filter(isValidUuid) : v.$in;
+            if (validVals.length > 0) {
+              parts.push(`${col}.in.(${validVals.join(",")})`);
+            }
           } else {
-            parts.push(`${col}.eq.${v}`);
+            const formattedVal = typeof v === "string" ? `"${v.replace(/"/g, '""')}"` : v;
+            parts.push(`${col}.eq.${formattedVal}`);
           }
         }
       }
       if (parts.length > 0) {
-        orParts.push(parts.join(","));
+        orParts.push(parts.length > 1 ? `and(${parts.join(",")})` : parts[0]);
       }
     }
     if (orParts.length > 0) {
-      // Deduplicate identical or conditions
       const uniqueOr = [...new Set(orParts)];
       q = q.or(uniqueOr.join(","));
     }
@@ -161,10 +208,17 @@ function applyFilter(query, table, filter = {}) {
 
   for (const [key, cond] of Object.entries(rest)) {
     const col = toColumnName(key);
+    if (validCols && !validCols.has(col)) continue;
+    if (isUuidColumn(col) && typeof cond === "string" && !isValidUuid(cond)) {
+      continue;
+    }
     if (cond !== null && typeof cond === "object" && !Array.isArray(cond)) {
-      if ("$in" in cond) q = q.in(col, cond.$in);
-      else if ("$ne" in cond) q = q.neq(col, cond.$ne);
-      else if ("$gte" in cond) q = q.gte(col, cond.$gte);
+      if ("$in" in cond) {
+        const validVals = isUuidColumn(col) ? cond.$in.filter(isValidUuid) : cond.$in;
+        if (validVals.length > 0) q = q.in(col, validVals);
+      } else if ("$ne" in cond) {
+        if (!isUuidColumn(col) || isValidUuid(cond.$ne)) q = q.neq(col, cond.$ne);
+      } else if ("$gte" in cond) q = q.gte(col, cond.$gte);
       else if ("$lte" in cond) q = q.lte(col, cond.$lte);
       else throw new Error(`Unsupported filter operator on ${table}.${col}`);
     } else if (cond === undefined) {
@@ -176,11 +230,14 @@ function applyFilter(query, table, filter = {}) {
   return q;
 }
 
-function applySort(query, spec = {}) {
+function applySort(table, query, spec = {}) {
   let q = query;
+  const validCols = TABLE_COLUMNS[table] ? new Set(TABLE_COLUMNS[table]) : null;
   for (const [key, dir] of Object.entries(spec)) {
     const col = toColumnName(key);
-    q = q.order(col, { ascending: dir !== -1 });
+    if (!validCols || validCols.has(col)) {
+      q = q.order(col, { ascending: dir !== -1 });
+    }
   }
   return q;
 }
@@ -219,7 +276,8 @@ function isTableMissingError(error) {
   if (!error) return false;
   const msg = (error.message || String(error)).toLowerCase();
   const code = error.code || "";
-  return code === "PGRST116" || code === "42P01" || msg.includes("schema cache") || msg.includes("does not exist") || msg.includes("could not find the table");
+  if (code === "42703") return false; // column undefined
+  return code === "PGRST116" || code === "42P01" || (msg.includes("table") && msg.includes("does not exist")) || (msg.includes("relation") && msg.includes("does not exist"));
 }
 
 class ListQuery {
@@ -235,7 +293,7 @@ class ListQuery {
   async _run() {
     const supabase = await getClient();
     let q = applyFilter(supabase.from(this.table).select("*"), this.table, this.filter);
-    if (this._sort) q = applySort(q, this._sort);
+    if (this._sort) q = applySort(this.table, q, this._sort);
     if (this._limit != null) q = q.limit(this._limit);
     const { data, error } = await q;
     if (error) {
@@ -260,7 +318,7 @@ class SingleQuery {
   async _run() {
     const supabase = await getClient();
     let q = applyFilter(supabase.from(this.table).select("*"), this.table, this.filter);
-    if (this._sort) q = applySort(q, this._sort);
+    if (this._sort) q = applySort(this.table, q, this._sort);
     const { data, error } = await q.limit(1).maybeSingle();
     if (error) {
       if (isTableMissingError(error)) return null;
@@ -295,7 +353,7 @@ class UpdateQuery {
 
 function createCollection(table) {
   return {
-    async syncIndexes() {},
+    async syncIndexes() { },
     find(filter = {}) { return new ListQuery(table, filter); },
     findOne(filter = {}) { return new SingleQuery(table, filter); },
     findById(id) { return new SingleQuery(table, { _id: id }); },
@@ -354,7 +412,12 @@ function createCollection(table) {
     },
     async deleteMany(filter = {}) {
       const supabase = await getClient();
-      const q = applyFilter(supabase.from(table).delete(), table, filter);
+      let q = supabase.from(table).delete();
+      if (!filter || Object.keys(filter).length === 0) {
+        q = q.neq("id", "00000000-0000-0000-0000-000000000000");
+      } else {
+        q = applyFilter(q, table, filter);
+      }
       const { error, count } = await q;
       if (error) {
         if (isTableMissingError(error)) return { deletedCount: 0 };
@@ -421,6 +484,7 @@ export const VerificationResult = createCollection("verification_results");
 export const ComplianceResult = VerificationResult; // alias
 export const Evidence = createCollection("evidence");
 export const AadhaarRegistry = createCollection("aadhaar_registry");
+export const MockProviderRecord = createCollection("mock_provider_records");
 
 // Historic fallback models for V1 compatibility
 export const Evaluation = createCollection("evaluations");

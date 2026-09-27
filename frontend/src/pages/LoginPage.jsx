@@ -8,7 +8,7 @@ export default function LoginPage() {
   const { t } = useLanguage();
   const [role, setRole] = useState("officer"); // officer | vendor
   const [email, setEmail] = useState("officer@procurement.gov.in");
-  const [password, setPassword] = useState("Password123!");
+  const [password, setPassword] = useState("password123!");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -20,10 +20,10 @@ export default function LoginPage() {
     setError("");
     if (selectedRole === "officer") {
       setEmail("officer@procurement.gov.in");
-      setPassword("Password123!");
+      setPassword("password123!");
     } else {
       setEmail("vendor@acme.com");
-      setPassword("Password123!");
+      setPassword("password123!");
     }
   };
 

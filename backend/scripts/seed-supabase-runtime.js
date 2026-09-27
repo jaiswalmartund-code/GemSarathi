@@ -1,7 +1,7 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "node:crypto";
-import { supabase } from "../config/supabase.js";
+import { supabase } from "../src/config/supabase.js";
 
 async function seedSupabaseRuntime() {
   console.log("=== GEM VERIFIER V2: SUPABASE RUNTIME SEED ===");

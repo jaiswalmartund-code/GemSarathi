@@ -22,6 +22,7 @@ const COLLECTIONS = [
   "verification_results",
   "evidence",
   "aadhaar_registry",
+  "mock_provider_records",
 ];
 
 function blankDb() {
@@ -302,6 +303,7 @@ export const Document = createCollection("documents");
 export const DocumentExtraction = createCollection("document_extractions");
 export const Evidence = createCollection("evidence");
 export const AadhaarRegistry = createCollection("aadhaar_registry");
+export const MockProviderRecord = createCollection("mock_provider_records");
 
 export async function connectDatabase() {
   await Promise.all([
@@ -318,6 +320,7 @@ export async function connectDatabase() {
     VerificationResult.syncIndexes(),
     Evidence.syncIndexes(),
     AadhaarRegistry.syncIndexes(),
+    MockProviderRecord.syncIndexes(),
   ]);
   return { mode: "file", file: DATA_FILE };
 }

@@ -183,7 +183,21 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+CREATE TABLE IF NOT EXISTS mock_provider_records (
+  "_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  "providerType" TEXT NOT NULL,
+  "identifier" TEXT NOT NULL,
+  "vendorId" TEXT,
+  "status" TEXT,
+  "referenceData" JSONB DEFAULT '{}'::jsonb,
+  "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+  "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT unique_provider_identifier UNIQUE ("providerType", "identifier")
+);
+CREATE INDEX IF NOT EXISTS idx_mock_provider_lookup ON mock_provider_records("providerType", "identifier");
+
 -- ---------- Storage bucket for bid PDFs ----------
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('bid-uploads', 'bid-uploads', false)
 ON CONFLICT (id) DO NOTHING;
+

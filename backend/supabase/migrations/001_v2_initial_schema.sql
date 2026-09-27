@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS verification_results (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     bid_id UUID NOT NULL REFERENCES bids(id) ON DELETE CASCADE,
     requirement_id UUID NOT NULL REFERENCES tender_requirements(id) ON DELETE CASCADE,
-    status VARCHAR(50) NOT NULL CHECK (status IN ('PASS', 'FAIL', 'REVIEW')),
+    status VARCHAR(50) NOT NULL CHECK (status IN ('PASS', 'FAIL', 'REVIEW', 'DOCUMENT_NOT_FOUND')),
     extracted_value TEXT,
     expected_value TEXT,
     compliance_score NUMERIC(5,2),
@@ -225,16 +225,23 @@ ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE document_extractions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE verification_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE evidence ENABLE ROW LEVEL SECURITY;
-ALTER TABLE aadhaar_registry ENABLE ROW LEVEL SECURITY;
+-- -----------------------------------------------------------------------------
+-- 11. MOCK_PROVIDER_RECORDS
+-- Factual reference records for the 7 mock government/reference providers.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS mock_provider_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    provider_type VARCHAR(100) NOT NULL,
+    identifier VARCHAR(255) NOT NULL,
+    vendor_id VARCHAR(255),
+    status VARCHAR(50),
+    reference_data JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT unique_provider_identifier UNIQUE (provider_type, identifier)
+);
+CREATE INDEX IF NOT EXISTS idx_mock_provider_lookup ON mock_provider_records(provider_type, identifier);
 
--- Service Role Full Access Policies (backend application access)
-CREATE POLICY "Service role full access on users" ON users FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access on vendors" ON vendors FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access on tenders" ON tenders FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access on tender_requirements" ON tender_requirements FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access on bids" ON bids FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access on documents" ON documents FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access on document_extractions" ON document_extractions FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access on verification_results" ON verification_results FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access on evidence" ON evidence FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access on aadhaar_registry" ON aadhaar_registry FOR ALL TO service_role USING (true) WITH CHECK (true);
+ALTER TABLE mock_provider_records ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Service role full access on mock_provider_records" ON mock_provider_records FOR ALL TO service_role USING (true) WITH CHECK (true);
+

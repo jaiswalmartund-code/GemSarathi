@@ -11,7 +11,7 @@ function looksLikePdf(buffer) {
   return buffer.length > 4 && buffer.subarray(0, 4).toString() === "%PDF";
 }
 
-async function performGeminiOcr(buffer, mimeType = "application/pdf") {
+export async function performGeminiOcr(buffer, mimeType = "application/pdf") {
   if (!aiClient) return null;
   try {
     const base64Data = buffer.toString("base64");

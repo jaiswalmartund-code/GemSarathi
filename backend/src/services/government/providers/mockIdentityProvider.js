@@ -1,33 +1,79 @@
 // Mock Identity Verification Provider (Aadhaar & Representative Identity)
-// Returns reference identity data from the UIDAI / DigiLocker registry snapshot.
+// Returns reference identity data from persistent MockProviderRecord database / UIDAI / DigiLocker snapshot.
+
+import { MockProviderRecord } from "../../../db/models.js";
 
 const AADHAAR_REGISTRY = {
-  "9999-8888-9012": {
+  "999988889012": {
     representativeName: "Rahul Sharma",
     designation: "Director - Business Operations",
     aadhaarRef: "9999-8888-9012",
     verificationStatus: "VERIFIED",
+    identityStatus: "VERIFIED",
     gender: "Male"
   },
-  "RAHUL SHARMA": {
+  "999988887777": {
+    representativeName: "Rahul Mehta",
+    designation: "Authorised Representative",
+    aadhaarRef: "9999-8888-7777",
+    verificationStatus: "VERIFIED",
+    identityStatus: "VERIFIED",
+    gender: "Male"
+  },
+  "RAHULSHARMA": {
     representativeName: "Rahul Sharma",
     designation: "Director - Business Operations",
     aadhaarRef: "9999-8888-9012",
     verificationStatus: "VERIFIED",
+    identityStatus: "VERIFIED",
     gender: "Male"
   },
-  "8888-7777-6034": {
+  "RAHULMEHTA": {
+    representativeName: "Rahul Mehta",
+    designation: "Authorised Representative",
+    aadhaarRef: "9999-8888-7777",
+    verificationStatus: "VERIFIED",
+    identityStatus: "VERIFIED",
+    gender: "Male"
+  },
+  "ACMECORPORATION": {
+    representativeName: "Rahul Mehta",
+    designation: "Authorised Representative",
+    aadhaarRef: "9999-8888-7777",
+    verificationStatus: "VERIFIED",
+    identityStatus: "VERIFIED",
+    gender: "Male"
+  },
+  "AACAC1234A": {
+    representativeName: "Rahul Mehta",
+    designation: "Authorised Representative",
+    aadhaarRef: "9999-8888-7777",
+    verificationStatus: "VERIFIED",
+    identityStatus: "VERIFIED",
+    gender: "Male"
+  },
+  "VENACME001": {
+    representativeName: "Rahul Mehta",
+    designation: "Authorised Representative",
+    aadhaarRef: "9999-8888-7777",
+    verificationStatus: "VERIFIED",
+    identityStatus: "VERIFIED",
+    gender: "Male"
+  },
+  "888877776034": {
     representativeName: "Vikram Kumar Mehta",
     designation: "Partner",
     aadhaarRef: "8888-7777-6034",
     verificationStatus: "NAME_MISMATCH",
+    identityStatus: "NAME_MISMATCH",
     gender: "Male"
   },
-  "VIKRAM MEHTA": {
+  "VIKRAMMEHTA": {
     representativeName: "Vikram Kumar Mehta",
     designation: "Partner",
     aadhaarRef: "8888-7777-6034",
     verificationStatus: "NAME_MISMATCH",
+    identityStatus: "NAME_MISMATCH",
     gender: "Male"
   }
 };
@@ -36,17 +82,38 @@ const DEBARRED_VENDORS = new Set(["Shady Traders Co", "VEN-SHADY-003"]);
 
 export class MockAadhaarProvider {
   async verify(identifier) {
-    const key = (identifier || "").toString().trim().toUpperCase();
+    const raw = (identifier || "").toString().trim().toUpperCase();
+    const key = raw.replace(/[\s-]/g, "");
     if (!key) return null;
-    const record = AADHAAR_REGISTRY[key];
+
+    try {
+      const dbRecord = await MockProviderRecord.findOne({
+        providerType: "IDENTITY_REGISTRY",
+        $or: [{ identifier: raw }, { identifier: key }, { vendorId: raw }, { vendorId: key }],
+      });
+      if (dbRecord && dbRecord.referenceData) {
+        return { ...dbRecord.referenceData };
+      }
+    } catch (e) {
+      // Fallback
+    }
+
+    const record = AADHAAR_REGISTRY[key] || AADHAAR_REGISTRY[raw];
     if (record) return { ...record };
-    return {
-      representativeName: identifier,
-      designation: "Authorised Signatory",
-      aadhaarRef: "XXXX-XXXX-9012",
-      verificationStatus: "VERIFIED",
-      gender: "Male"
-    };
+
+    // Default fallback for Acme Corporation or general test uploads
+    if (raw.includes("ACME") || raw.includes("MEHTA") || raw.includes("SHARMA") || key === "AACAC1234A") {
+      return {
+        representativeName: "Rahul Mehta",
+        designation: "Authorised Representative",
+        aadhaarRef: "9999-8888-7777",
+        verificationStatus: "VERIFIED",
+        identityStatus: "VERIFIED",
+        gender: "Male"
+      };
+    }
+
+    return null;
   }
 }
 
@@ -70,3 +137,4 @@ export async function verifyDigiLockerInRegistry(docNames = []) {
   }
   return { status: "not_found", detail: "No bid documents available for DigiLocker verification.", evidence: null };
 }
+

@@ -2,16 +2,34 @@
 // Handles PDF text extraction, scanned PDF detection, OCR fallback,
 // AI tender understanding, storage persistence, and database persistence.
 
-import { extractTextFromFile } from "../documents/pdfExtractorService.js";
+import { extractTextFromFile, performGeminiOcr } from "../documents/pdfExtractorService.js";
+import { readFile, saveBuffer, saveUpload } from "../documents/fileStorageService.js";
 import { documentUnderstandingService } from "../ai/documentUnderstandingService.js";
-import { saveBuffer, saveUpload } from "../documents/fileStorageService.js";
 import { Tender, Requirement, Document } from "../../db/models.js";
 
 async function ocrFallback(storagePathOrBuffer) {
+  try {
+    const buffer = Buffer.isBuffer(storagePathOrBuffer)
+      ? storagePathOrBuffer
+      : (typeof storagePathOrBuffer === "string" ? await readFile(storagePathOrBuffer) : null);
+    if (buffer) {
+      const ocrResult = await performGeminiOcr(buffer, "application/pdf");
+      if (ocrResult && ocrResult.text && ocrResult.text.length >= 20) {
+        return {
+          text: ocrResult.text,
+          pages: ocrResult.pages || 1,
+          method: "gemini-ocr",
+          scannedHint: false,
+        };
+      }
+    }
+  } catch (err) {
+    console.error("[TenderIngestion Gemini OCR Error]:", err.message);
+  }
   return {
     text: "",
     pages: null,
-    method: "ocr",
+    method: "ocr-failed",
     scannedHint: true,
   };
 }
@@ -94,6 +112,12 @@ export async function ingestTenderPipeline({ filePath, buffer, originalFilename,
     organization: tenderData.organization,
     department: tenderData.organization,
     description: tenderData.description,
+    summary: tenderData.summary || tenderData.description,
+    scope: tenderData.scope || tenderData.description,
+    completionPeriod: tenderData.completionPeriodDays ? `${tenderData.completionPeriodDays} days` : (tenderData.completionPeriod || "90 days"),
+    completion_period: tenderData.completionPeriodDays ? `${tenderData.completionPeriodDays} days` : (tenderData.completionPeriod || "90 days"),
+    warrantyPeriod: tenderData.warrantyPeriod || "3 years",
+    warranty_period: tenderData.warrantyPeriod || "3 years",
     estimatedValue: tenderData.estimatedValue ? parseFloat(tenderData.estimatedValue.replace(/[^0-9.]/g, "")) || 0 : 0,
     estimated_value: tenderData.estimatedValue ? parseFloat(tenderData.estimatedValue.replace(/[^0-9.]/g, "")) || 0 : 0,
     submissionDeadline: tenderData.submissionDeadline || new Date(Date.now() + 30 * 86400 * 1000).toISOString(),
@@ -117,26 +141,26 @@ export async function ingestTenderPipeline({ filePath, buffer, originalFilename,
   const reqDocsToInsert = reqData.map((r, idx) => ({
     tenderId,
     tender_id: tenderId,
-    title: r.requirementName,
-    requirement_name: r.requirementName,
-    description: r.description,
-    category: r.requirementCategory,
-    requirement_category: r.requirementCategory,
-    requirementType: r.requirementType,
-    requirement_type: r.requirementType,
-    expectedValue: r.expectedValue,
-    expected_value: r.expectedValue,
-    expectedUnit: r.expectedUnit,
-    expected_unit: r.expectedUnit,
+    title: String(r.requirementName || "").slice(0, 95),
+    requirement_name: String(r.requirementName || "").slice(0, 95),
+    description: String(r.description || ""),
+    category: String(r.requirementCategory || "").slice(0, 95),
+    requirement_category: String(r.requirementCategory || "").slice(0, 95),
+    requirementType: String(r.requirementType || "").slice(0, 95),
+    requirement_type: String(r.requirementType || "").slice(0, 95),
+    expectedValue: String(r.expectedValue || "").slice(0, 95),
+    expected_value: String(r.expectedValue || "").slice(0, 95),
+    expectedUnit: String(r.expectedUnit || "").slice(0, 95),
+    expected_unit: String(r.expectedUnit || "").slice(0, 95),
     mandatory: r.mandatory,
-    requiredDocumentType: r.requiredDocumentType,
-    required_document_type: r.requiredDocumentType,
-    verificationRule: r.verificationRule,
-    verification_rule: r.verificationRule,
+    requiredDocumentType: String(r.requiredDocumentType || "").slice(0, 95),
+    required_document_type: String(r.requiredDocumentType || "").slice(0, 95),
+    verificationRule: String(r.verificationRule || "").slice(0, 95),
+    verification_rule: String(r.verificationRule || "").slice(0, 95),
     sourcePage: r.sourcePage,
     source_page: r.sourcePage,
-    sourceText: r.sourceText,
-    source_text: r.sourceText,
+    sourceText: String(r.sourceText || ""),
+    source_text: String(r.sourceText || ""),
     requirementOrder: idx + 1,
   }));
 
@@ -144,9 +168,9 @@ export async function ingestTenderPipeline({ filePath, buffer, originalFilename,
 
   let savedFile;
   if (buffer) {
-    savedFile = await saveBuffer(originalFilename || `${tenderNumber}.pdf`, buffer, mimeType);
+    savedFile = await saveBuffer(originalFilename || `${tenderNumber}.pdf`, buffer, mimeType, "tenders");
   } else {
-    savedFile = await saveUpload({ path: filePath, originalname: originalFilename || `${tenderNumber}.pdf`, mimetype: mimeType });
+    savedFile = await saveUpload({ path: filePath, originalname: originalFilename || `${tenderNumber}.pdf`, mimetype: mimeType }, "tenders");
   }
 
   const docRecord = await Document.create({
@@ -162,12 +186,20 @@ export async function ingestTenderPipeline({ filePath, buffer, originalFilename,
     mimeType,
   });
 
+  tenderData.id = tenderId;
+  tenderData._id = tenderId;
+  tenderData.storagePath = savedFile.storagePath;
+
   return {
     success: true,
     tenderId,
     tenderNumber,
     tender: tenderData,
+    requirements: reqData,
     requirementsCount: createdRequirements.length,
+    extractionMethod: extraction.extractionMethod,
+    extractedTextLength: (extraction.text || "").length,
+    storagePath: savedFile.storagePath,
     documentId: docRecord._id || docRecord.id,
   };
 }

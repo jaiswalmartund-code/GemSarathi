@@ -19,6 +19,7 @@ export const {
   ComplianceResult,
   Evidence,
   AadhaarRegistry,
+  MockProviderRecord,
   Evaluation,
   Award,
   AuditLog,
