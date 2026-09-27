@@ -300,7 +300,7 @@ router.post("/bids", asyncRoute(async (req, res) => {
 // V2 Technical Bid Document Upload Endpoint
 router.post("/bids/:bidId/documents", upload.single("file"), asyncRoute(async (req, res) => {
   const { bidId } = req.params;
-  const docType = (req.body.documentType || req.body.document_type || "TECHNICAL_BID").toUpperCase();
+  let docType = (req.body.documentType || req.body.document_type || "TECHNICAL_BID").toUpperCase();
 
   const bid = await Bid.findById(bidId);
   if (!bid) {
@@ -309,6 +309,29 @@ router.post("/bids/:bidId/documents", upload.single("file"), asyncRoute(async (r
 
   if (!req.file) {
     return res.status(400).json({ success: false, error: "No PDF file uploaded in field 'file'." });
+  }
+
+  // Normalize documentType if it starts with REQUIREMENT_
+  if (docType.startsWith("REQUIREMENT_")) {
+    const text = `${docType} ${req.file.originalname || ""}`.toLowerCase();
+    if (text.includes("pan")) docType = "PAN";
+    else if (text.includes("gst")) docType = "GST";
+    else if (text.includes("aadhaar") || text.includes("identity")) docType = "AADHAAR";
+    else if (text.includes("financial") || text.includes("turnover") || text.includes("itr") || text.includes("balance")) docType = "FINANCIAL_STATEMENT";
+    else if (text.includes("experience") || text.includes("contract") || text.includes("past work")) docType = "EXPERIENCE_CERTIFICATE";
+    else if (text.includes("company") || text.includes("mca") || text.includes("registration") || text.includes("incorporation")) docType = "COMPANY_REGISTRATION";
+    else if (text.includes("technical")) docType = "TECHNICAL_BID";
+    else docType = "OTHER";
+  }
+
+  const bId = bid._id || bid.id;
+  if (docType !== "OTHER") {
+    await Document.deleteMany({
+      $or: [
+        { bidId: bId, documentType: docType },
+        { bid_id: bId, document_type: docType }
+      ]
+    });
   }
 
   const fileBuffer = fs.readFileSync(req.file.path);
@@ -320,8 +343,8 @@ router.post("/bids/:bidId/documents", upload.single("file"), asyncRoute(async (r
   const normalizedStoragePath = (stored.storagePath || "").replace(/\\/g, "/");
 
   const doc = await Document.create({
-    bidId: bid._id || bid.id,
-    bid_id: bid._id || bid.id,
+    bidId: bId,
+    bid_id: bId,
     tenderId: bid.tenderId || bid.tender_id,
     tender_id: bid.tenderId || bid.tender_id,
     vendorId: bid.vendorId || bid.vendor_id,
